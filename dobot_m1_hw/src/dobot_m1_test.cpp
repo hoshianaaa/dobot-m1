@@ -1,6 +1,29 @@
 #include "ros/ros.h"
 #include "DobotDll.h"
 
+void cpcmd(double x,double y,double z, double r)
+{
+    PTPCmd cmd;
+    uint64_t lastIndex;
+    bool ret;
+
+    cmd.ptpMode = 2; //movel:2 movej:1
+    cmd.x = x;
+    cmd.y = y;
+    cmd.z = z;
+    cmd.r = r;
+
+    while (SetQueuedCmdClear() != DobotCommunicate_NoError) {}
+    while (SetPTPCmd(&cmd, true, &lastIndex) != DobotCommunicate_NoError) {}
+
+    uint64_t currentIndex;
+    while(1)
+    {
+      while(GetQueuedCmdCurrentIndex(&currentIndex) != DobotCommunicate_NoError) {}
+      if (lastIndex <= currentIndex)break;
+    }
+}
+
 int main(int argc, char**argv)
 {
     std::string deviceName;
@@ -12,7 +35,10 @@ int main(int argc, char**argv)
     uint64_t queuedCmdIndex;
 
     // Connect to Dobot 
-    if (ConnectDobot(deviceIP.c_str(), 115200, 0, 0) == DobotCommunicate_NoError) {
+    // ####### need!!! ################
+    // sudo chmod /dev/ttyUSB0
+    // ################################
+    if (ConnectDobot("/dev/ttyUSB0", 115200, 0, 0) == DobotCommunicate_NoError) {
         ROS_INFO("Opened Dobot Communication");
     } else {
         ROS_ERROR("Invalid port name or Dobot is occupied by other application or something else :)");
@@ -71,4 +97,9 @@ int main(int argc, char**argv)
     if (SetDeviceName(deviceName.c_str()) == DobotCommunicate_NoError) {
       ROS_INFO("Dobot is Running.");
     }
+    cpcmd(250,0,100,0);
+    cpcmd(350,0,100,0);
+    //Pose pose;
+    //GetPose(&pose);
+    //std::cout << "x:" << pose.x << " y:" << pose.y << " z:" << pose.z << std::endl;
 }
