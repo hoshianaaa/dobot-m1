@@ -77,8 +77,15 @@ target_link_libraries(dobot_m1_hw_interface
 # Main controlexecutable
 add_executable(dobot_m1_hw_node ${SOURCES} ${HEADERS})
 
+
 target_link_libraries(dobot_m1_hw_node
   dobot_m1_hw_interface
+  ${catkin_LIBRARIES}
+  DobotDllM1
+)
+
+add_executable(dobot_m1_test src/dobot_m1_test.cpp)
+target_link_libraries(dobot_m1_test
   ${catkin_LIBRARIES}
   DobotDllM1
 )
